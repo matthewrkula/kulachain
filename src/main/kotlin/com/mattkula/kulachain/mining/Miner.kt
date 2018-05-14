@@ -4,22 +4,52 @@ import com.mattkula.kulachain.common.extension.sha256
 import com.mattkula.kulachain.model.Block
 import java.util.*
 
-class Miner(difficulty: Int = 4) {
+class Miner(
+    difficulty: Int = 4,
+    private val minerId: String = "Matt Kula"
+) {
 
   private val prefix = "0".repeat(difficulty)
+  private val random = Random()
 
-  fun mineBlock(data: String, previousHash: String): Block {
+  private var isCancelled = false
+
+  fun mineBlock(data: String, previousHash: String): Block? {
     val timestamp = Date().time
 
-    var nonce = 0L
+    var nonce = random.nextLong()
     var hash = calculateHash(data, previousHash, timestamp, nonce)
 
-    while (!hash.startsWith(prefix)) {
+    while (!hash.startsWith(prefix) && !isCancelled) {
       nonce++
       hash = calculateHash(data, previousHash, timestamp, nonce)
     }
 
-    return Block(hash, previousHash, nonce, data)
+    return if (isCancelled) {
+      isCancelled = false
+      null
+    } else {
+      Block(hash, previousHash, nonce, data, timestamp, minerId)
+    }
+  }
+
+  fun cancelCurrentBlock() {
+    isCancelled = true
+  }
+
+  fun verifyBlock(newBlock: Block, parentBlock: Block): Boolean {
+    if (newBlock.previousHash != parentBlock.hash) {
+      return false
+    }
+
+    val newHash = calculateHash(
+        newBlock.data,
+        parentBlock.hash,
+        newBlock.timestamp,
+        newBlock.nonce
+    )
+
+    return newHash.startsWith(prefix) && newHash == newBlock.hash
   }
 
   private fun calculateHash(
