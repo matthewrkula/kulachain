@@ -17,7 +17,7 @@ class Main {
 
   fun startChain() {
     val miner = Miner(2)
-    val genesis = miner.mineBlock("This is the genesis block", "0", -1)
+    val genesis = miner.mineBlock("This is the genesis block. Let there be light.", "0", -1)
     println("Found genesis block ${genesis!!.hash}")
 
     val blockchain = Blockchain(genesis)
