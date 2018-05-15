@@ -52,7 +52,7 @@ class Miner(
     return newHash.startsWith(prefix) && newHash == newBlock.hash
   }
 
-  private fun calculateHash(
+  fun calculateHash(
       data: String,
       previousHash: String,
       timestamp: Long,

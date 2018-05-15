@@ -13,8 +13,6 @@ class MiningJob(
   private val miner = Miner(minerId = id)
   private val blockchain = blockchainMaster.toMutableList()
 
-  private var shouldIgnore = false
-
   override fun run() {
     while (shouldContinue()) {
       val nextBlock = miner.mineBlock("This is the block #${blockchain.size}", blockchain.last().hash) ?: continue
