@@ -1,6 +1,7 @@
 package com.mattkula.kulachain
 
 import com.google.gson.Gson
+import com.mattkula.kulachain.blockchain.Blockchain
 import com.mattkula.kulachain.mining.Miner
 import com.mattkula.kulachain.mining.MiningJob
 import com.mattkula.kulachain.model.Block
@@ -18,10 +19,10 @@ class Main {
   fun startChain() {
 
     val miner = Miner()
-    val genesis = miner.mineBlock("This is the genesis block", "0")
+    val genesis = miner.mineBlock("This is the genesis block", "0", -1)
     println("Found genesis block ${genesis!!.hash}")
 
-    val blockchain = mutableListOf(genesis!!)
+    val blockchain = Blockchain(genesis)
 
     val job = MiningJob(
         id = "First miner ever",
@@ -46,7 +47,6 @@ class Main {
   }
 
   private fun notifyAllOfNewBlock(block: Block) {
-//    println(gson.toJson(block))
     jobs.forEach {
       it.onNewBlockFound(block)
     }

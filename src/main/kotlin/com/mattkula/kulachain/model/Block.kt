@@ -7,5 +7,6 @@ data class Block(
     val nonce: Long,
     val data: String,
     val timestamp: Long,
-    val miner: String
+    val miner: String,
+    val depth: Long
 )

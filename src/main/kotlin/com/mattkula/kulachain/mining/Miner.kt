@@ -14,7 +14,7 @@ class Miner(
 
   private var isCancelled = false
 
-  fun mineBlock(data: String, previousHash: String): Block? {
+  fun mineBlock(data: String, previousHash: String, previousLevel: Long): Block? {
     val timestamp = Date().time
 
     var nonce = random.nextLong()
@@ -29,7 +29,7 @@ class Miner(
       isCancelled = false
       null
     } else {
-      Block(hash, previousHash, nonce, data, timestamp, minerId)
+      Block(hash, previousHash, nonce, data, timestamp, minerId, previousLevel + 1)
     }
   }
 
@@ -39,6 +39,11 @@ class Miner(
 
   fun verifyBlock(newBlock: Block, parentBlock: Block): Boolean {
     if (newBlock.previousHash != parentBlock.hash) {
+      return false
+    }
+
+    if (newBlock.depth != parentBlock.depth + 1) {
+      println("Depth is wrong, rejecting")
       return false
     }
 

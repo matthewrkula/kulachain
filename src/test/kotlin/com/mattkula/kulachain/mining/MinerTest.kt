@@ -12,7 +12,7 @@ class MinerTest {
 
     val testData = "Test data"
 
-    val block = miner.mineBlock(testData, "123")!!
+    val block = miner.mineBlock(testData, "123", 1)!!
 
     assertEquals(block.hash, miner.calculateHash(testData, "123", block.timestamp, block.nonce))
     assertTrue(block.hash.startsWith("000"))

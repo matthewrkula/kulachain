@@ -1,51 +1,48 @@
 package com.mattkula.kulachain.mining
 
 import com.mattkula.kulachain.LogUtil
+import com.mattkula.kulachain.blockchain.Blockchain
 import com.mattkula.kulachain.common.extension.sha256
 import com.mattkula.kulachain.model.Block
 
 class MiningJob(
     private val id: String,
     private val onBlockMined: (Block) -> Unit,
-    blockchainMaster: MutableList<Block>
+    blockchainMaster: Blockchain
 ) : Runnable {
 
   private val miner = Miner(minerId = id)
-  private val blockchain = blockchainMaster.toMutableList()
+  private val blockchain = blockchainMaster.copy()
 
   override fun run() {
     while (shouldContinue()) {
-      val nextBlock = miner.mineBlock("This is the block #${blockchain.size}", blockchain.last().hash) ?: continue
+      val deepestBlock = blockchain.getDeepestBlock()
+      val nextBlock = miner.mineBlock("This is some data", deepestBlock.hash, deepestBlock.depth) ?: continue
       synchronized(blockchain) {
-        blockchain.add(nextBlock)
+        blockchain.addBlock(nextBlock)
 
         println("$id found block ${nextBlock.hash}")
         onBlockMined(nextBlock)
       }
     }
 
-//    println("$id: ${uniqueString()}")
-    LogUtil.gsonPrint(blockchain)
+    println("$id: ${uniqueString()}")
+    LogUtil.gsonPrint(blockchain.longestList())
   }
 
   fun onNewBlockFound(candidate: Block) {
     synchronized(blockchain) {
       // This job already found this block, ignore it
-      val alreadyFound = blockchain.find { it.hash === candidate.hash }
+      val alreadyFound = blockchain.getBlock(candidate.hash)
       if (alreadyFound != null) {
         return
       }
 
-      val parent = blockchain.find { it.hash === candidate.previousHash } ?: return
-
-      if (parent !== blockchain.last()) {
-        println("Parent is not the last in the chain")
-        return
-      }
+      val parent = blockchain.getBlock(candidate.previousHash) ?: return
 
       if (miner.verifyBlock(candidate, parent)) {
         println("$id accepts block ${candidate.hash}")
-        blockchain.add(candidate)
+        blockchain.addBlock(candidate)
         miner.cancelCurrentBlock()
       } else {
         println("$id rejects block")
@@ -53,6 +50,6 @@ class MiningJob(
     }
   }
 
-  private fun shouldContinue(): Boolean = blockchain.size < 10
-  private fun uniqueString(): String = blockchain.fold("", { acc, block -> acc + block.hash }).sha256()
+  private fun shouldContinue(): Boolean = blockchain.getDeepestBlock().depth < 10
+  private fun uniqueString(): String = blockchain.longestList().fold("", { acc, block -> acc + block.hash }).sha256()
 }
